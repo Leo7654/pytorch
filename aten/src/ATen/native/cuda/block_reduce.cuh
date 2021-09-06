@@ -10,6 +10,7 @@ namespace native {
 namespace cuda_utils {
 
 constexpr int kCUDABlockReduceNumThreads = 512;
+constexpr int kCUDABlockReduceMaxThreads = C10_WARP_SIZE * C10_WARP_SIZE;
 
 // Sums `val` accross all threads in a warp.
 //
@@ -41,7 +42,7 @@ __inline__ __device__ T BlockReduceSum(T val, T* shared) {
     shared[wid] = val;
   }
   __syncthreads();
-  val = (threadIdx.x < blockDim.x / C10_WARP_SIZE) ? shared[lid] : 0;
+  val = (threadIdx.x < blockDim.x / C10_WARP_SIZE) ? shared[lid] : T(0);
   if (wid == 0) {
     val = WarpReduceSum(val);
   }
